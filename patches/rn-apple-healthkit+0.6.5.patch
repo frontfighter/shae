@@ -1,0 +1,461 @@
+diff --git a/node_modules/rn-apple-healthkit/.DS_Store b/node_modules/rn-apple-healthkit/.DS_Store
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/rn-apple-healthkit/RCTAppleHealthKit.podspec b/node_modules/rn-apple-healthkit/RCTAppleHealthKit.podspec
+new file mode 100644
+index 0000000..d2dac83
+--- /dev/null
++++ b/node_modules/rn-apple-healthkit/RCTAppleHealthKit.podspec
+@@ -0,0 +1,23 @@
++require "json"
++
++package = JSON.parse(File.read(File.join(__dir__, "package.json")))
++
++Pod::Spec.new do |s|
++  s.name         = "RCTAppleHealthKit"
++  s.version      = package["version"]
++  s.summary      = package["description"]
++  s.description  = <<-DESC
++                  A React Native package for interacting with Apple HealthKit
++                   DESC
++  s.homepage     = "https://github.com/terrillo/rn-apple-healthkit"
++  s.license      = "MIT"
++  s.author      = { "Terrillo Walls" => "terrillo@terrillo.com" }
++  s.platforms    = { :ios => "9.0" }
++  s.source       = { :git => "https://github.com/terrillo/rn-apple-healthkit.git", :tag => "#{s.version}" }
++
++  s.source_files = "RCTAppleHealthKit/**/*.{h,m,swift}"
++  s.requires_arc = true
++
++  s.dependency "React"
++
++end
+diff --git a/node_modules/rn-apple-healthkit/RCTAppleHealthKit.xcodeproj/xcuserdata/admin.xcuserdatad/xcschemes/xcschememanagement.plist b/node_modules/rn-apple-healthkit/RCTAppleHealthKit.xcodeproj/xcuserdata/admin.xcuserdatad/xcschemes/xcschememanagement.plist
+new file mode 100644
+index 0000000..0d35822
+--- /dev/null
++++ b/node_modules/rn-apple-healthkit/RCTAppleHealthKit.xcodeproj/xcuserdata/admin.xcuserdatad/xcschemes/xcschememanagement.plist
+@@ -0,0 +1,14 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
++<plist version="1.0">
++<dict>
++	<key>SchemeUserState</key>
++	<dict>
++		<key>RCTAppleHealthKit.xcscheme_^#shared#^_</key>
++		<dict>
++			<key>orderHint</key>
++			<integer>67</integer>
++		</dict>
++	</dict>
++</dict>
++</plist>
+diff --git a/node_modules/rn-apple-healthkit/RCTAppleHealthKit.xcodeproj/xcuserdata/igormotorny.xcuserdatad/xcschemes/xcschememanagement.plist b/node_modules/rn-apple-healthkit/RCTAppleHealthKit.xcodeproj/xcuserdata/igormotorny.xcuserdatad/xcschemes/xcschememanagement.plist
+new file mode 100644
+index 0000000..b1d9728
+--- /dev/null
++++ b/node_modules/rn-apple-healthkit/RCTAppleHealthKit.xcodeproj/xcuserdata/igormotorny.xcuserdatad/xcschemes/xcschememanagement.plist
+@@ -0,0 +1,14 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
++<plist version="1.0">
++<dict>
++	<key>SchemeUserState</key>
++	<dict>
++		<key>RCTAppleHealthKit.xcscheme_^#shared#^_</key>
++		<dict>
++			<key>orderHint</key>
++			<integer>54</integer>
++		</dict>
++	</dict>
++</dict>
++</plist>
+diff --git a/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Activity.h b/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Activity.h
+index 5bdecf4..999060c 100644
+--- a/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Activity.h
++++ b/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Activity.h
+@@ -13,5 +13,6 @@
+ 
+ - (void)activity_getActiveEnergyBurned:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback;
+ - (void)activity_getBasalEnergyBurned:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback;
++- (void)activity_getHourlyActiveEnergyBurned:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback;
+ 
+ @end
+diff --git a/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Activity.m b/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Activity.m
+index eeb0d91..a234e32 100644
+--- a/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Activity.m
++++ b/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Activity.m
+@@ -42,6 +42,32 @@ - (void)activity_getActiveEnergyBurned:(NSDictionary *)input callback:(RCTRespon
+                           }];
+ }
+ 
++- (void)activity_getHourlyActiveEnergyBurned:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
++{
++    HKQuantityType *quantityType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierActiveEnergyBurned];
++    HKUnit *unit = [HKUnit kilocalorieUnit];
++    NSDate *date = [RCTAppleHealthKit dateFromOptions:input key:@"date" withDefault:[NSDate date]];
++    NSUInteger interval = [RCTAppleHealthKit uintFromOptions:input key:@"interval" withDefault:60];
++    
++    if (date == nil) {
++        callback(@[RCTMakeError(@"could not parse date from options.date", nil, nil)]);
++        return;
++    }
++    
++    [self fetchHourlySamplesOnDayForType:quantityType
++                                    unit:unit
++                                     day:date
++                                interval:interval
++                              completion:^(NSArray *arr, NSError *err) {
++                                  if (err != nil) {
++                                      NSLog(@"error with fetchHourlySamplesOnDayForType: %@", err);
++                                      callback(@[RCTMakeError(@"error with fetchHourlySamplesOnDayForType", err, nil)]);
++                                      return;
++                                  }
++                                  callback(@[[NSNull null], arr]);
++                              }];
++}
++
+ - (void)activity_getBasalEnergyBurned:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
+ {
+     HKQuantityType *basalEnergyType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierBasalEnergyBurned];
+diff --git a/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Fitness.h b/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Fitness.h
+index 51449f8..bcf0b96 100644
+--- a/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Fitness.h
++++ b/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Fitness.h
+@@ -12,6 +12,10 @@
+ @interface RCTAppleHealthKit (Methods_Fitness)
+ 
+ - (void)fitness_getStepCountOnDay:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback;
++- (void)fitness_getHourlyStepCountOnDay:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback;
++- (void)fitness_getHourlyDistanceWalkingRunningOnDay:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback;
++- (void)fitness_getHourlyDistanceCyclingOnDay:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback;
++- (void)fitness_getHourlyFlightsClimbedOnDay:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback;
+ - (void)fitness_getSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback;
+ - (void)fitness_setObserver:(NSDictionary *)input;
+ - (void)fitness_getDailyStepSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback;
+diff --git a/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Fitness.m b/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Fitness.m
+index 9f0e5e2..e2caf50 100644
+--- a/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Fitness.m
++++ b/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Fitness.m
+@@ -49,6 +49,33 @@ - (void)fitness_getStepCountOnDay:(NSDictionary *)input callback:(RCTResponseSen
+     }];
+ }
+ 
++- (void)fitness_getHourlyStepCountOnDay:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
++{
++    NSDate *date = [RCTAppleHealthKit dateFromOptions:input key:@"date" withDefault:[NSDate date]];
++    NSUInteger interval = [RCTAppleHealthKit uintFromOptions:input key:@"interval" withDefault:60];
++    
++    if (date == nil) {
++        callback(@[RCTMakeError(@"could not parse date from options.date", nil, nil)]);
++        return;
++    }
++    
++    HKQuantityType *stepCountType = [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierStepCount];
++    HKUnit *stepsUnit = [HKUnit countUnit];
++    
++    [self fetchHourlySamplesOnDayForType:stepCountType
++                                    unit:stepsUnit
++                                     day:date
++                                interval:interval
++                              completion:^(NSArray *arr, NSError *err) {
++                                  if (err != nil) {
++                                      NSLog(@"error with fetchHourlySamplesOnDayForType: %@", err);
++                                      callback(@[RCTMakeError(@"error with fetchHourlySamplesOnDayForType", err, nil)]);
++                                      return;
++                                  }
++                                  callback(@[[NSNull null], arr]);
++                              }];
++}
++
+ - (void)fitness_getSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
+ {
+     HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit countUnit]];
+@@ -185,6 +212,60 @@ - (void)fitness_initializeStepEventObserver:(NSDictionary *)input callback:(RCTR
+     [self.healthStore executeQuery:query];
+ }
+ 
++- (void)fitness_getHourlyDistanceWalkingRunningOnDay:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
++{
++    HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit meterUnit]];
++    NSDate *date = [RCTAppleHealthKit dateFromOptions:input key:@"date" withDefault:[NSDate date]];
++    NSUInteger interval = [RCTAppleHealthKit uintFromOptions:input key:@"interval" withDefault:60];
++    
++    if (date == nil) {
++        callback(@[RCTMakeError(@"could not parse date from options.date", nil, nil)]);
++        return;
++    }
++    
++    HKQuantityType *quantityType = [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierDistanceWalkingRunning];
++    
++    [self fetchHourlySamplesOnDayForType:quantityType
++                                    unit:unit
++                                     day:date
++                                interval:interval
++                              completion:^(NSArray *arr, NSError *err) {
++                                  if (err != nil) {
++                                      NSLog(@"error with fetchHourlySamplesOnDayForType: %@", err);
++                                      callback(@[RCTMakeError(@"error with fetchHourlySamplesOnDayForType", err, nil)]);
++                                      return;
++                                  }
++                                  callback(@[[NSNull null], arr]);
++                              }];
++}
++
++- (void)fitness_getHourlyFlightsClimbedOnDay:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
++{
++    HKUnit *unit = [HKUnit countUnit];
++    NSDate *date = [RCTAppleHealthKit dateFromOptions:input key:@"date" withDefault:[NSDate date]];
++    NSUInteger interval = [RCTAppleHealthKit uintFromOptions:input key:@"interval" withDefault:60];
++    
++    if (date == nil) {
++        callback(@[RCTMakeError(@"could not parse date from options.date", nil, nil)]);
++        return;
++    }
++    
++    HKQuantityType *quantityType = [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierFlightsClimbed];
++    
++    [self fetchHourlySamplesOnDayForType:quantityType
++                                    unit:unit
++                                     day:date
++                                interval:interval
++                              completion:^(NSArray *arr, NSError *err) {
++                                  if (err != nil) {
++                                      NSLog(@"error with fetchHourlySamplesOnDayForType: %@", err);
++                                      callback(@[RCTMakeError(@"error with fetchHourlySamplesOnDayForType", err, nil)]);
++                                      return;
++                                  }
++                                  callback(@[[NSNull null], arr]);
++                              }];
++}
++
+ 
+ - (void)fitness_getDistanceWalkingRunningOnDay:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
+ {
+@@ -241,6 +322,33 @@ - (void)fitness_getDailyDistanceWalkingRunningSamples:(NSDictionary *)input call
+                                       }];
+ }
+ 
++- (void)fitness_getHourlyDistanceCyclingOnDay:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
++{
++    HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit meterUnit]];
++    NSDate *date = [RCTAppleHealthKit dateFromOptions:input key:@"date" withDefault:[NSDate date]];
++    NSUInteger interval = [RCTAppleHealthKit uintFromOptions:input key:@"interval" withDefault:60];
++    
++    if (date == nil) {
++        callback(@[RCTMakeError(@"could not parse date from options.date", nil, nil)]);
++        return;
++    }
++    
++    HKQuantityType *quantityType = [HKObjectType quantityTypeForIdentifier:HKQuantityTypeIdentifierDistanceCycling];
++    
++    [self fetchHourlySamplesOnDayForType:quantityType
++                                    unit:unit
++                                     day:date
++                                interval:interval
++                              completion:^(NSArray *arr, NSError *err) {
++                                  if (err != nil) {
++                                      NSLog(@"error with fetchHourlySamplesOnDayForType: %@", err);
++                                      callback(@[RCTMakeError(@"error with fetchHourlySamplesOnDayForType", err, nil)]);
++                                      return;
++                                  }
++                                  callback(@[[NSNull null], arr]);
++                              }];
++}
++
+ - (void)fitness_getDistanceCyclingOnDay:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
+ {
+     HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit meterUnit]];
+diff --git a/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Vitals.h b/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Vitals.h
+index db4df78..b8dcb68 100644
+--- a/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Vitals.h
++++ b/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Vitals.h
+@@ -4,6 +4,7 @@
+ 
+ - (void)vitals_getHeartRateSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback;
+ - (void)vitals_getBodyTemperatureSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback;
++- (void)vitals_getHourlyBodyTemperature:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback;
+ - (void)vitals_getBloodPressureSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback;
+ - (void)vitals_getRespiratoryRateSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback;
+ 
+diff --git a/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Vitals.m b/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Vitals.m
+index 74c53cb..d8902a3 100644
+--- a/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Vitals.m
++++ b/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Methods_Vitals.m
+@@ -73,6 +73,33 @@ - (void)vitals_getBodyTemperatureSamples:(NSDictionary *)input callback:(RCTResp
+     }];
+ }
+ 
++- (void)vitals_getHourlyBodyTemperature:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
++{
++    HKUnit *unit = [RCTAppleHealthKit hkUnitFromOptions:input key:@"unit" withDefault:[HKUnit degreeCelsiusUnit]];
++    NSDate *date = [RCTAppleHealthKit dateFromOptions:input key:@"date" withDefault:[NSDate date]];
++    NSUInteger interval = [RCTAppleHealthKit uintFromOptions:input key:@"interval" withDefault:60];
++    
++    if (date == nil) {
++        callback(@[RCTMakeError(@"could not parse date from options.date", nil, nil)]);
++        return;
++    }
++    
++    HKQuantityType *quantityType = [HKQuantityType quantityTypeForIdentifier:HKQuantityTypeIdentifierBodyTemperature];
++    
++    [self fetchHourlySamplesOnDayForType:quantityType
++                                    unit:unit
++                                     day:date
++                                interval:interval
++                              completion:^(NSArray *arr, NSError *err) {
++                                  if (err != nil) {
++                                      NSLog(@"error with fetchHourlySamplesOnDayForType: %@", err);
++                                      callback(@[RCTMakeError(@"error with fetchHourlySamplesOnDayForType", err, nil)]);
++                                      return;
++                                  }
++                                  callback(@[[NSNull null], arr]);
++                              }];
++}
++
+ 
+ - (void)vitals_getBloodPressureSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback
+ {
+diff --git a/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Queries.h b/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Queries.h
+index 172152b..9e70a2c 100644
+--- a/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Queries.h
++++ b/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Queries.h
+@@ -14,6 +14,11 @@
+ - (void)fetchMostRecentQuantitySampleOfType:(HKQuantityType *)quantityType predicate:(NSPredicate *)predicate completion:(void (^)(HKQuantity *mostRecentQuantity, NSDate *startDate, NSDate *endDate, NSError *error))completion;
+ - (void)fetchSumOfSamplesTodayForType:(HKQuantityType *)quantityType unit:(HKUnit *)unit completion:(void (^)(double, NSError *))completionHandler;
+ - (void)fetchSumOfSamplesOnDayForType:(HKQuantityType *)quantityType unit:(HKUnit *)unit day:(NSDate *)day completion:(void (^)(double, NSDate *, NSDate *, NSError *))completionHandler;
++- (void)fetchHourlySamplesOnDayForType:(HKQuantityType *)quantityType
++                                  unit:(HKUnit *)unit
++                                   day:(NSDate *)day
++                              interval:(NSUInteger)interval
++                            completion:(void (^)(NSArray *, NSError *))completionHandler;
+ - (void)fetchCumulativeSumStatisticsCollection:(HKQuantityType *)quantityType
+                                           unit:(HKUnit *)unit
+                                      startDate:(NSDate *)startDate
+diff --git a/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Queries.m b/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Queries.m
+index f18ceb3..b49ac07 100644
+--- a/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Queries.m
++++ b/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit+Queries.m
+@@ -446,6 +446,23 @@ - (void)fetchSumOfSamplesOnDayForType:(HKQuantityType *)quantityType
+     [self.healthStore executeQuery:query];
+ }
+ 
++- (void)fetchHourlySamplesOnDayForType:(HKQuantityType *)quantityType
++                                  unit:(HKUnit *)unit
++                                   day:(NSDate *)day
++                              interval:(NSUInteger)interval
++                            completion:(void (^)(NSArray *, NSError *))completionHandler {
++    NSCalendar *calendar = [NSCalendar currentCalendar];
++    NSDate *startDate = [calendar startOfDayForDate:day];
++    NSDate *endDate = [calendar dateByAddingUnit:NSCalendarUnitDay value:1 toDate:startDate options:0];
++    [self fetchCumulativeSumStatisticsCollection:quantityType
++                                            unit:unit
++                                       startDate:startDate
++                                         endDate:endDate
++                                       ascending:NO
++                                           limit:HKObjectQueryNoLimit
++                                        interval:interval
++                                      completion:completionHandler];
++}
+ 
+ - (void)fetchCumulativeSumStatisticsCollection:(HKQuantityType *)quantityType
+                                           unit:(HKUnit *)unit
+@@ -499,6 +516,16 @@ - (void)fetchCumulativeSumStatisticsCollection:(HKQuantityType *)quantityType
+     [self.healthStore executeQuery:query];
+ }
+ 
++- (void)fetchCumulativeSumStatisticsCollection:(HKQuantityType *)quantityType
++                                          unit:(HKUnit *)unit
++                                     startDate:(NSDate *)startDate
++                                       endDate:(NSDate *)endDate
++                                     ascending:(BOOL)asc
++                                         limit:(NSUInteger)lim
++                                    completion:(void (^)(NSArray *, NSError *))completionHandler {
++    [self fetchCumulativeSumStatisticsCollection:quantityType unit:unit startDate:startDate endDate:endDate ascending:asc limit:lim interval:24*60 completion:completionHandler];
++}
++
+ 
+ - (void)fetchCumulativeSumStatisticsCollection:(HKQuantityType *)quantityType
+                                           unit:(HKUnit *)unit
+@@ -506,11 +533,12 @@ - (void)fetchCumulativeSumStatisticsCollection:(HKQuantityType *)quantityType
+                                        endDate:(NSDate *)endDate
+                                      ascending:(BOOL)asc
+                                          limit:(NSUInteger)lim
++                                      interval:(NSUInteger)intervalMinutes
+                                     completion:(void (^)(NSArray *, NSError *))completionHandler {
+ 
+     NSCalendar *calendar = [NSCalendar currentCalendar];
+     NSDateComponents *interval = [[NSDateComponents alloc] init];
+-    interval.day = 1;
++    interval.minute = intervalMinutes;
+ 
+     NSDateComponents *anchorComponents = [calendar components:NSCalendarUnitDay | NSCalendarUnitMonth | NSCalendarUnitYear
+                                                      fromDate:[NSDate date]];
+@@ -547,10 +575,10 @@ - (void)fetchCumulativeSumStatisticsCollection:(HKQuantityType *)quantityType
+                                            NSString *endDateString = [RCTAppleHealthKit buildISO8601StringFromDate:endDate];
+ 
+                                            NSDictionary *elem = @{
+-                                                   @"value" : @(value),
+-                                                   @"startDate" : startDateString,
+-                                                   @"endDate" : endDateString,
+-                                           };
++                                                                  @"value" : @(value),
++                                                                  @"startDate" : startDateString,
++                                                                  @"endDate" : endDateString,
++                                                                  };
+                                            [data addObject:elem];
+                                        }
+                                    }];
+diff --git a/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit.m b/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit.m
+index c91c471..cc67ed0 100644
+--- a/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit.m
++++ b/node_modules/rn-apple-healthkit/RCTAppleHealthKit/RCTAppleHealthKit.m
+@@ -180,6 +180,11 @@ @implementation RCTAppleHealthKit
+    [self activity_getActiveEnergyBurned:input callback:callback];
+ }
+ 
++RCT_EXPORT_METHOD(getHourlyActiveEnergyBurned:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
++{
++   [self activity_getHourlyActiveEnergyBurned:input callback:callback];
++}
++
+ RCT_EXPORT_METHOD(getBasalEnergyBurned:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
+ {
+     [self activity_getBasalEnergyBurned:input callback:callback];
+@@ -190,11 +195,36 @@ @implementation RCTAppleHealthKit
+     [self vitals_getBodyTemperatureSamples:input callback:callback];
+ }
+ 
++RCT_EXPORT_METHOD(getHourlyBodyTemperature:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
++{
++    [self vitals_getHourlyBodyTemperature:input callback:callback];
++}
++
+ RCT_EXPORT_METHOD(getBloodPressureSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
+ {
+     [self vitals_getBloodPressureSamples:input callback:callback];
+ }
+ 
++RCT_EXPORT_METHOD(getHourlyStepCount:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
++{
++    [self fitness_getHourlyStepCountOnDay:input callback:callback];
++}
++
++RCT_EXPORT_METHOD(getHourlyDistanceWalkingRunning:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
++{
++    [self fitness_getHourlyDistanceWalkingRunningOnDay:input callback:callback];
++}
++
++RCT_EXPORT_METHOD(getHourlyDistanceCycling:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
++{
++    [self fitness_getHourlyDistanceCyclingOnDay:input callback:callback];
++}
++
++RCT_EXPORT_METHOD(getHourlyFlightsClimbed:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
++{
++    [self fitness_getHourlyFlightsClimbedOnDay:input callback:callback];
++}
++
+ RCT_EXPORT_METHOD(getRespiratoryRateSamples:(NSDictionary *)input callback:(RCTResponseSenderBlock)callback)
+ {
+     [self vitals_getRespiratoryRateSamples:input callback:callback];

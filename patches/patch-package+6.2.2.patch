@@ -1,0 +1,18 @@
+diff --git a/node_modules/patch-package/dist/makePatch.js b/node_modules/patch-package/dist/makePatch.js
+index 84275f2..bd8a216 100644
+--- a/node_modules/patch-package/dist/makePatch.js
++++ b/node_modules/patch-package/dist/makePatch.js
+@@ -104,9 +104,10 @@ function makePatch(_a) {
+                 args[_i] = arguments[_i];
+             }
+             return spawnSafe_1.spawnSafeSync("git", args, {
+-                cwd: tmpRepo.name,
+-                env: { HOME: tmpRepo.name },
+-            });
++                            cwd: tmpRepo.name,
++                            env: { HOME: tmpRepo.name },
++                            maxBuffer: 1024 * 1024 * 100
++                        });
+         };
+         // remove nested node_modules just to be safe
+         rimraf_1.sync(path_1.join(tmpRepoPackagePath, "node_modules"));

@@ -1,0 +1,15 @@
+diff --git a/node_modules/react-native-emoji/index.js b/node_modules/react-native-emoji/index.js
+index 44915ec..eb47d40 100644
+--- a/node_modules/react-native-emoji/index.js
++++ b/node_modules/react-native-emoji/index.js
+@@ -30,4 +30,10 @@ Emoji.propTypes = {
+   name: PropTypes.oneOf(names).isRequired
+ };
+ 
++export const getEmoji = (name) => {
++  const emoji = nodeEmoji.get(name);
++
++  return emoji;
++}
++
+ export default Emoji;

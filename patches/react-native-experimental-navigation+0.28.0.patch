@@ -1,0 +1,93 @@
+diff --git a/node_modules/react-native-experimental-navigation/NavigationCard.js b/node_modules/react-native-experimental-navigation/NavigationCard.js
+index d6f8d7b..5af6e02 100644
+--- a/node_modules/react-native-experimental-navigation/NavigationCard.js
++++ b/node_modules/react-native-experimental-navigation/NavigationCard.js
+@@ -105,7 +105,7 @@ class NavigationCard extends React.Component<any, Props, any> {
+       pointerEvents,
+       renderScene,
+       style,
+-      ...props, /* NavigationSceneRendererProps */
++      ...props /* NavigationSceneRendererProps */
+     } = this.props;
+ 
+     const viewStyle = style === undefined ?
+diff --git a/node_modules/react-native-experimental-navigation/NavigationContainer.js b/node_modules/react-native-experimental-navigation/NavigationContainer.js
+index 8f12ade..a891706 100644
+--- a/node_modules/react-native-experimental-navigation/NavigationContainer.js
++++ b/node_modules/react-native-experimental-navigation/NavigationContainer.js
+@@ -13,6 +13,7 @@
+ 
+ var React = require('react');
+ var NavigationRootContainer = require('./NavigationRootContainer');
++var PropTypes = require('prop-types');
+ 
+ function createNavigationContainer(
+   Component: ReactClass<any>,
+@@ -36,10 +37,10 @@ function createNavigationContainer(
+     }
+   }
+   NavigationComponent.contextTypes = {
+-    onNavigate: React.PropTypes.func,
++    onNavigate: PropTypes.func,
+   };
+   NavigationComponent.childContextTypes = {
+-    onNavigate: React.PropTypes.func,
++    onNavigate: PropTypes.func,
+   };
+   return NavigationComponent;
+ }
+diff --git a/node_modules/react-native-experimental-navigation/NavigationHeaderBackButton.js b/node_modules/react-native-experimental-navigation/NavigationHeaderBackButton.js
+index a335820..918b70c 100644
+--- a/node_modules/react-native-experimental-navigation/NavigationHeaderBackButton.js
++++ b/node_modules/react-native-experimental-navigation/NavigationHeaderBackButton.js
+@@ -20,6 +20,7 @@ const React = require('react');
+ const ReactNative = require('react-native');
+ const NavigationContainer = require('./NavigationContainer');
+ const NavigationRootContainer = require('./NavigationRootContainer');
++const PropTypes = require('prop-types');
+ 
+ const {
+   Image,
+@@ -39,7 +40,7 @@ const NavigationHeaderBackButton = (props: Props) => (
+ );
+ 
+ NavigationHeaderBackButton.propTypes = {
+-  onNavigate: React.PropTypes.func.isRequired
++  onNavigate: PropTypes.func.isRequired
+ };
+ 
+ const styles = StyleSheet.create({
+diff --git a/node_modules/react-native-experimental-navigation/NavigationHeaderTitle.js b/node_modules/react-native-experimental-navigation/NavigationHeaderTitle.js
+index eda95e8..b4cde0a 100644
+--- a/node_modules/react-native-experimental-navigation/NavigationHeaderTitle.js
++++ b/node_modules/react-native-experimental-navigation/NavigationHeaderTitle.js
+@@ -29,6 +29,7 @@
+ 
+ const React = require('react');
+ const ReactNative = require('react-native');
++const PropTypes = require('prop-types');
+ 
+ const {
+   Platform,
+@@ -69,7 +70,7 @@ const styles = StyleSheet.create({
+ });
+ 
+ NavigationHeaderTitle.propTypes = {
+-  children: React.PropTypes.string.isRequired,
++  children: PropTypes.string.isRequired,
+   style: ViewPropTypes.style,
+   textStyle: Text.propTypes.style
+ };
+diff --git a/node_modules/react-native-experimental-navigation/NavigationRootContainer.js b/node_modules/react-native-experimental-navigation/NavigationRootContainer.js
+index dcc94c7..25707c6 100644
+--- a/node_modules/react-native-experimental-navigation/NavigationRootContainer.js
++++ b/node_modules/react-native-experimental-navigation/NavigationRootContainer.js
+@@ -11,7 +11,7 @@
+  */
+ 'use strict';
+ 
+-const AsyncStorage = require('react-native').AsyncStorage;
++const AsyncStorage = require('@react-native-async-storage/async-storage');
+ const Linking = require('react-native').Linking;
+ const NavigationPropTypes = require('./NavigationPropTypes');
+ const NavigationStateUtils = require('./NavigationStateUtils');

@@ -1,0 +1,111 @@
+diff --git a/node_modules/react-native-router-flux/src/DefaultRenderer.js b/node_modules/react-native-router-flux/src/DefaultRenderer.js
+index 54ee812..52f9f04 100644
+--- a/node_modules/react-native-router-flux/src/DefaultRenderer.js
++++ b/node_modules/react-native-router-flux/src/DefaultRenderer.js
+@@ -7,9 +7,9 @@
+  *
+  */
+ import React, {
+-  PureComponent,
+-  PropTypes,
++  PureComponent
+ } from 'react';
++import PropTypes from 'prop-types';
+ import {
+   Animated,
+   View,
+diff --git a/node_modules/react-native-router-flux/src/Modal.js b/node_modules/react-native-router-flux/src/Modal.js
+index a8c4720..b821508 100644
+--- a/node_modules/react-native-router-flux/src/Modal.js
++++ b/node_modules/react-native-router-flux/src/Modal.js
+@@ -1,6 +1,5 @@
+-import React, {
+-  PropTypes,
+-} from 'react';
++import React from 'react';
++import PropTypes from 'prop-types';
+ import {
+   View,
+ } from 'react-native';
+diff --git a/node_modules/react-native-router-flux/src/NavBar.js b/node_modules/react-native-router-flux/src/NavBar.js
+index 55d4dbe..638cea4 100644
+--- a/node_modules/react-native-router-flux/src/NavBar.js
++++ b/node_modules/react-native-router-flux/src/NavBar.js
+@@ -23,9 +23,8 @@
+  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  *
+  */
+-import React, {
+-  PropTypes,
+-} from 'react';
++import React from 'react';
++import PropTypes from 'prop-types';
+ import {
+   Platform,
+   Animated,
+diff --git a/node_modules/react-native-router-flux/src/Router.js b/node_modules/react-native-router-flux/src/Router.js
+index f729462..75ac40d 100644
+--- a/node_modules/react-native-router-flux/src/Router.js
++++ b/node_modules/react-native-router-flux/src/Router.js
+@@ -6,10 +6,8 @@
+  * LICENSE file in the root directory of this source tree.
+  *
+  */
+-import React, {
+-  Component,
+-  PropTypes,
+-} from 'react';
++import React, { Component } from 'react';
++import PropTypes from 'prop-types';
+ import { BackHandler } from 'react-native';
+ import NavigationExperimental from 'react-native-experimental-navigation';
+ 
+diff --git a/node_modules/react-native-router-flux/src/Scene.js b/node_modules/react-native-router-flux/src/Scene.js
+index daf1bcb..229c4e0 100644
+--- a/node_modules/react-native-router-flux/src/Scene.js
++++ b/node_modules/react-native-router-flux/src/Scene.js
+@@ -6,7 +6,8 @@
+  * LICENSE file in the root directory of this source tree.
+  *
+  */
+-import React, { PropTypes } from 'react';
++import React from 'react';
++import PropTypes from 'prop-types';
+ import { ViewPropTypes, Text } from 'react-native';
+ 
+ export default class extends React.Component {
+diff --git a/node_modules/react-native-router-flux/src/Switch.js b/node_modules/react-native-router-flux/src/Switch.js
+index 0c47166..ba666d6 100644
+--- a/node_modules/react-native-router-flux/src/Switch.js
++++ b/node_modules/react-native-router-flux/src/Switch.js
+@@ -1,6 +1,7 @@
+-import React, { PropTypes } from 'react';
++import React from 'react';
+ import TabBar from './TabBar';
+ import Actions from './Actions';
++import PropTypes from 'prop-types';
+ 
+ export default function Switch(props) {
+   const navState = props.navigationState;
+diff --git a/node_modules/react-native-router-flux/src/TabBar.js b/node_modules/react-native-router-flux/src/TabBar.js
+index 456fe26..dae3fc6 100644
+--- a/node_modules/react-native-router-flux/src/TabBar.js
++++ b/node_modules/react-native-router-flux/src/TabBar.js
+@@ -1,4 +1,5 @@
+-import React, { Component, PropTypes } from 'react';
++import React, { Component } from 'react';
++import PropTypes from 'prop-types';
+ import {
+   Image,
+   View,
+diff --git a/node_modules/react-native-router-flux/src/TabbedView.js b/node_modules/react-native-router-flux/src/TabbedView.js
+index 7071a75..91bb8ab 100644
+--- a/node_modules/react-native-router-flux/src/TabbedView.js
++++ b/node_modules/react-native-router-flux/src/TabbedView.js
+@@ -1,4 +1,5 @@
+-import React, { Component, PropTypes } from 'react';
++import React, { Component } from 'react';
++import PropTypes from 'prop-types';
+ import { View, StyleSheet, ViewPropTypes } from 'react-native';
+ import StaticContainer from 'react-static-container';
+ 
